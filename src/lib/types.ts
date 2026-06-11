@@ -33,6 +33,8 @@ export type AidRequest = {
   reportNumber: string;
   reportDate: string;
   orderDate: string;
+  bases?: string[];
+  // Legacy fields retained for existing browser data.
   circumstances?: string;
   vlk?: string;
   status: RequestStatus;

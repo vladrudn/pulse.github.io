@@ -34,8 +34,9 @@ const STORAGE_KEY = "impuls-gdo-workspace-v1";
 const REPORT_INCREMENT_KEY = "impuls-gdo-report-increment-v1";
 const LAST_MANUAL_REPORT_KEY = "impuls-gdo-last-manual-report-v1";
 const LAST_MANUAL_REPORT_DATE_KEY = "impuls-gdo-last-manual-report-date-v1";
-const LAST_CIRCUMSTANCES_KEY = "impuls-md-last-circumstances-v1";
-const LAST_ADDITIONAL_BASIS_KEY = "impuls-md-last-additional-basis-v1";
+const BASIS_HISTORY_KEY = "impuls-md-basis-history-v1";
+const LEGACY_CIRCUMSTANCES_KEY = "impuls-md-last-circumstances-v1";
+const LEGACY_ADDITIONAL_BASIS_KEY = "impuls-md-last-additional-basis-v1";
 const readStoredHistory = (key: string) => {
   try {
     const stored = window.localStorage.getItem(key);
@@ -71,6 +72,11 @@ const addStoredHistoryValue = (key: string, history: string[], value: string) =>
   }
   return next;
 };
+const getRequestBases = (request: AidRequest) => (
+  request.bases?.length
+    ? request.bases
+    : [request.circumstances, request.vlk]
+).map((value) => value?.trim()).filter((value): value is string => Boolean(value));
 const today = () => new Date().toISOString().slice(0, 10);
 const makeId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -328,8 +334,7 @@ function ImpulsWorkspaceContent() {
     reportNumber: string;
     reportDate: string;
     orderDate: string;
-    circumstances?: string;
-    vlk?: string;
+    bases?: string[];
   }) => {
     const duplicate = state.requests.some((request) =>
       request.aidKind === aidKind &&
@@ -349,8 +354,7 @@ function ImpulsWorkspaceContent() {
       reportNumber: payload.reportNumber.trim(),
       reportDate: payload.reportDate,
       orderDate: payload.orderDate,
-      circumstances: payload.circumstances?.trim() || undefined,
-      vlk: payload.vlk?.trim() || undefined,
+      bases: payload.bases?.map((value) => value.trim()).filter(Boolean),
       status: "processed",
       createdAt: new Date().toISOString(),
       processedAt: new Date().toISOString(),
@@ -1059,9 +1063,7 @@ function RequestsTable({
                 <td>{formatDate(request.orderDate)}</td>
                 {aidKind === "material" && (
                   <td className="subject-cell">
-                    {[request.circumstances, request.vlk]
-                      .filter(Boolean)
-                      .join("; ") || "—"}
+                    {getRequestBases(request).join("; ") || "—"}
                   </td>
                 )}
                 <td>
@@ -1095,8 +1097,7 @@ function RequestDrawer({
     reportNumber: string;
     reportDate: string;
     orderDate: string;
-    circumstances?: string;
-    vlk?: string;
+    bases?: string[];
   }) => boolean;
 }) {
   const storageKey = (base: string) =>
@@ -1134,14 +1135,19 @@ function RequestDrawer({
     }
   });
   const [formOrderDate, setFormOrderDate] = useState(today());
-  const [circumstances, setCircumstances] = useState("");
-  const [vlk, setVlk] = useState("");
-  const [circumstancesHistory, setCircumstancesHistory] = useState(() =>
-    readStoredHistory(LAST_CIRCUMSTANCES_KEY)
-  );
-  const [additionalBasisHistory, setAdditionalBasisHistory] = useState(() =>
-    readStoredHistory(LAST_ADDITIONAL_BASIS_KEY)
-  );
+  const [bases, setBases] = useState([""]);
+  const [basisHistory, setBasisHistory] = useState(() => {
+    const current = readStoredHistory(BASIS_HISTORY_KEY);
+    if (current.length) return current;
+    return [
+      ...readStoredHistory(LEGACY_CIRCUMSTANCES_KEY),
+      ...readStoredHistory(LEGACY_ADDITIONAL_BASIS_KEY),
+    ].filter((value, index, values) =>
+      values.findIndex((item) =>
+        item.toLocaleLowerCase("uk") === value.toLocaleLowerCase("uk")
+      ) === index
+    );
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const submit = () => {
@@ -1163,8 +1169,7 @@ function RequestDrawer({
       reportNumber: normalizedReportNumber,
       reportDate,
       orderDate: formOrderDate,
-      circumstances: aidKind === "material" ? circumstances : undefined,
-      vlk: aidKind === "material" ? vlk : undefined,
+      bases: aidKind === "material" ? bases : undefined,
     });
     if (saved) {
       try {
@@ -1182,20 +1187,15 @@ function RequestDrawer({
         // Saved defaults remain available for the current form.
       }
       if (aidKind === "material") {
-        setCircumstancesHistory((current) =>
-          addStoredHistoryValue(
-            LAST_CIRCUMSTANCES_KEY,
-            current,
-            circumstances,
-          )
-        );
-        setAdditionalBasisHistory((current) =>
-          addStoredHistoryValue(
-            LAST_ADDITIONAL_BASIS_KEY,
-            current,
-            vlk,
-          )
-        );
+        let nextHistory = basisHistory;
+        bases.filter((value) => value.trim()).forEach((value) => {
+          nextHistory = addStoredHistoryValue(
+            BASIS_HISTORY_KEY,
+            nextHistory,
+            value,
+          );
+        });
+        setBasisHistory(nextHistory);
       }
     }
   };
@@ -1277,39 +1277,48 @@ function RequestDrawer({
           )}
 
           <div className="form-section">
-            <h3>Підстава</h3>
+            <div className="form-section-heading">
+              <h3>Підстава</h3>
+              {aidKind === "material" && bases.length < 3 && (
+                <button
+                  type="button"
+                  className="add-basis-button"
+                  onClick={() => setBases((current) => [...current, ""])}
+                  aria-label="Додати ще одну підставу"
+                  title="Додати ще одну підставу"
+                >
+                  <Icon name="plus" />
+                </button>
+              )}
+            </div>
             {aidKind === "material" && (
-              <>
-                <label>
-                  <span>Довідка про обставини поранення</span>
-                  <input
-                    autoFocus
-                    value={circumstances}
-                    onChange={(event) => setCircumstances(event.target.value)}
-                    list="circumstances-history"
-                    placeholder="Наприклад, №777 від 07.06.2026 видана в/ч А0000"
-                  />
-                  <datalist id="circumstances-history">
-                    {circumstancesHistory.map((value) => (
-                      <option key={value} value={value} />
-                    ))}
-                  </datalist>
-                </label>
-                <label>
-                  <span>Додаткова підстава</span>
-                  <input
-                    value={vlk}
-                    onChange={(event) => setVlk(event.target.value)}
-                    list="additional-basis-history"
-                    placeholder="Номер, дата або реквізити довідки"
-                  />
-                  <datalist id="additional-basis-history">
-                    {additionalBasisHistory.map((value) => (
-                      <option key={value} value={value} />
-                    ))}
-                  </datalist>
-                </label>
-              </>
+              <div className="basis-fields">
+                {bases.map((basis, index) => {
+                  const inputId = `basis-${index}`;
+                  return (
+                    <div className="form-field basis-field" key={index}>
+                      <label htmlFor={inputId}>
+                        {index === 0
+                          ? "Текст підстави"
+                          : `Додаткова підстава ${index + 1}`}
+                      </label>
+                      <input
+                        id={inputId}
+                        name={`material-basis-${index + 1}`}
+                        value={basis}
+                        onChange={(event) => {
+                        setBases((current) =>
+                          current.map((value, valueIndex) =>
+                            valueIndex === index ? event.target.value : value
+                          )
+                            );
+                          }}
+                        placeholder="Введіть текст підстави"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             )}
             <div className={`form-field ${errors.reportNumber ? "field-error" : ""}`}>
               <div className="report-number-label">
@@ -1374,12 +1383,10 @@ function RequestDrawer({
             <small>
               Підстава: рапорт № {reportNumber || "…"} від{" "}
               {reportDate ? formatDate(reportDate) : "…"}
-              {aidKind === "material" && circumstances.trim()
-                ? `; довідка про обставини поранення ${circumstances.trim()}`
-                : ""}
-              {aidKind === "material" && vlk.trim()
-                ? `; ${vlk.trim()}`
-                : ""}.
+              {aidKind === "material" &&
+                bases.filter((value) => value.trim()).map((value) =>
+                  `; ${value.trim()}`
+                ).join("")}.
             </small>
           </div>
         </div>

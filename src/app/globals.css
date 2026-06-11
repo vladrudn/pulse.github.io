@@ -1213,13 +1213,53 @@ input[type="checkbox"] {
   margin-top: 25px;
 }
 
-.form-section h3 {
-  margin: 0 0 12px;
+.form-section-heading {
+  display: flex;
+  min-height: 37px;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
   padding-bottom: 9px;
   border-bottom: 1px solid var(--line-soft);
+}
+
+.form-section h3 {
+  margin: 0;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 17px;
   font-weight: 600;
+}
+
+.add-basis-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #aeb6b0;
+  border-radius: 50%;
+  background: #f5f7f5;
+  color: var(--olive-dark);
+}
+
+.add-basis-button:hover {
+  border-color: var(--olive);
+  background: var(--olive-soft);
+}
+
+.add-basis-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.basis-fields {
+  display: contents;
+}
+
+.basis-field > label {
+  display: block;
+  margin: 0;
 }
 
 .form-section label,
