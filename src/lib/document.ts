@@ -26,9 +26,14 @@ const formatOrderDate = (value: string) => {
 };
 
 const buildBasisText = (request: AidRequest) => {
-  const supplements = [request.circumstances, request.vlk]
-    .map((value) => value?.trim())
-    .filter(Boolean);
+  const circumstances = request.circumstances?.trim();
+  const additionalBasis = request.vlk?.trim();
+  const supplements = [
+    circumstances
+      ? `довідка про обставини поранення ${circumstances}`
+      : undefined,
+    additionalBasis,
+  ].filter(Boolean);
   const reportBasis = `Підстава: рапорт № ${request.reportNumber} від ${
     formatDate(request.reportDate)
   }`;

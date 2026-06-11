@@ -34,6 +34,43 @@ const STORAGE_KEY = "impuls-gdo-workspace-v1";
 const REPORT_INCREMENT_KEY = "impuls-gdo-report-increment-v1";
 const LAST_MANUAL_REPORT_KEY = "impuls-gdo-last-manual-report-v1";
 const LAST_MANUAL_REPORT_DATE_KEY = "impuls-gdo-last-manual-report-date-v1";
+const LAST_CIRCUMSTANCES_KEY = "impuls-md-last-circumstances-v1";
+const LAST_ADDITIONAL_BASIS_KEY = "impuls-md-last-additional-basis-v1";
+const readStoredHistory = (key: string) => {
+  try {
+    const stored = window.localStorage.getItem(key);
+    if (!stored) return [];
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((value): value is string =>
+          typeof value === "string" && Boolean(value.trim())
+        );
+      }
+    } catch {
+      // Migrate the previously stored single value into history.
+    }
+    return stored.trim() ? [stored.trim()] : [];
+  } catch {
+    return [];
+  }
+};
+const addStoredHistoryValue = (key: string, history: string[], value: string) => {
+  const normalized = value.trim();
+  if (!normalized) return history;
+  const next = [
+    normalized,
+    ...history.filter((item) =>
+      item.toLocaleLowerCase("uk") !== normalized.toLocaleLowerCase("uk")
+    ),
+  ].slice(0, 20);
+  try {
+    window.localStorage.setItem(key, JSON.stringify(next));
+  } catch {
+    // Keep the updated history available for the current session.
+  }
+  return next;
+};
 const today = () => new Date().toISOString().slice(0, 10);
 const makeId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -1099,6 +1136,12 @@ function RequestDrawer({
   const [formOrderDate, setFormOrderDate] = useState(today());
   const [circumstances, setCircumstances] = useState("");
   const [vlk, setVlk] = useState("");
+  const [circumstancesHistory, setCircumstancesHistory] = useState(() =>
+    readStoredHistory(LAST_CIRCUMSTANCES_KEY)
+  );
+  const [additionalBasisHistory, setAdditionalBasisHistory] = useState(() =>
+    readStoredHistory(LAST_ADDITIONAL_BASIS_KEY)
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const submit = () => {
@@ -1137,6 +1180,22 @@ function RequestDrawer({
         }
       } catch {
         // Saved defaults remain available for the current form.
+      }
+      if (aidKind === "material") {
+        setCircumstancesHistory((current) =>
+          addStoredHistoryValue(
+            LAST_CIRCUMSTANCES_KEY,
+            current,
+            circumstances,
+          )
+        );
+        setAdditionalBasisHistory((current) =>
+          addStoredHistoryValue(
+            LAST_ADDITIONAL_BASIS_KEY,
+            current,
+            vlk,
+          )
+        );
       }
     }
   };
@@ -1227,36 +1286,54 @@ function RequestDrawer({
                     autoFocus
                     value={circumstances}
                     onChange={(event) => setCircumstances(event.target.value)}
-                    placeholder="Номер, дата або реквізити довідки"
+                    list="circumstances-history"
+                    placeholder="Наприклад, №777 від 07.06.2026 видана в/ч А0000"
                   />
+                  <datalist id="circumstances-history">
+                    {circumstancesHistory.map((value) => (
+                      <option key={value} value={value} />
+                    ))}
+                  </datalist>
                 </label>
                 <label>
-                  <span>Довідка ВЛК</span>
+                  <span>Додаткова підстава</span>
                   <input
                     value={vlk}
                     onChange={(event) => setVlk(event.target.value)}
+                    list="additional-basis-history"
                     placeholder="Номер, дата або реквізити довідки"
                   />
+                  <datalist id="additional-basis-history">
+                    {additionalBasisHistory.map((value) => (
+                      <option key={value} value={value} />
+                    ))}
+                  </datalist>
                 </label>
               </>
             )}
-            <label className={errors.reportNumber ? "field-error" : ""}>
-              <span className="report-number-label">
-                <span>Номер рапорту <b>*</b></span>
-                <button
-                  type="button"
-                  className={`increment-badge ${incrementReport ? "is-active" : ""}`}
-                  aria-pressed={incrementReport}
-                  aria-label={`Автоматичний наступний номер: ${
-                    incrementReport ? "увімкнено" : "вимкнено"
-                  }`}
-                  data-tooltip="Зберігати останній введений номер рапорту та підставляти наступний номер +1."
-                  onClick={toggleIncrement}
-                >
-                  +1
-                </button>
-              </span>
+            <div className={`form-field ${errors.reportNumber ? "field-error" : ""}`}>
+              <div className="report-number-label">
+                <label htmlFor="report-number">Номер рапорту <b>*</b></label>
+                <span className="increment-badge-wrap">
+                  <button
+                    type="button"
+                    className={`increment-badge ${incrementReport ? "is-active" : ""}`}
+                    aria-pressed={incrementReport}
+                    aria-label={`Автоматичний наступний номер: ${
+                      incrementReport ? "увімкнено" : "вимкнено"
+                    }`}
+                    onClick={toggleIncrement}
+                  >
+                    +1
+                  </button>
+                  <span className="increment-tooltip" role="tooltip">
+                    Зберігати останній введений номер рапорту та підставляти
+                    наступний номер +1.
+                  </span>
+                </span>
+              </div>
               <input
+                id="report-number"
                 autoFocus={aidKind !== "material"}
                 value={reportNumber}
                 onChange={(event) => setReportNumber(event.target.value)}
@@ -1265,10 +1342,9 @@ function RequestDrawer({
                     normalizeManualReportNumber(current)
                   )}
                 inputMode="numeric"
-                placeholder="Наприклад, 1247"
               />
               {errors.reportNumber && <small>{errors.reportNumber}</small>}
-            </label>
+            </div>
             <div className="form-grid">
               <label className={errors.reportDate ? "field-error" : ""}>
                 <span>Дата рапорту <b>*</b></span>
@@ -1299,7 +1375,7 @@ function RequestDrawer({
               Підстава: рапорт № {reportNumber || "…"} від{" "}
               {reportDate ? formatDate(reportDate) : "…"}
               {aidKind === "material" && circumstances.trim()
-                ? `; ${circumstances.trim()}`
+                ? `; довідка про обставини поранення ${circumstances.trim()}`
                 : ""}
               {aidKind === "material" && vlk.trim()
                 ? `; ${vlk.trim()}`

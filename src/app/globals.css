@@ -1102,6 +1102,13 @@ input[type="checkbox"] {
   border-bottom: 1px solid var(--line);
 }
 
+.request-drawer > form {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
 .request-drawer h2 {
   max-width: 420px;
   font-size: 21px;
@@ -1215,7 +1222,8 @@ input[type="checkbox"] {
   font-weight: 600;
 }
 
-.form-section label {
+.form-section label,
+.form-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1225,7 +1233,8 @@ input[type="checkbox"] {
   font-weight: 650;
 }
 
-.form-section label > span b {
+.form-section label > span b,
+.form-field b {
   color: var(--red);
 }
 
@@ -1236,8 +1245,19 @@ input[type="checkbox"] {
   gap: 10px;
 }
 
-.increment-badge {
+.report-number-label label {
+  display: block;
+  margin: 0;
+}
+
+.increment-badge-wrap {
   position: relative;
+  display: inline-flex;
+  width: max-content;
+  flex: 0 0 auto;
+}
+
+.increment-badge {
   min-width: 34px;
   height: 22px;
   padding: 0 8px;
@@ -1260,7 +1280,7 @@ input[type="checkbox"] {
   box-shadow: 0 0 0 3px rgba(35, 132, 71, 0.2);
 }
 
-.increment-badge::after {
+.increment-tooltip {
   position: absolute;
   right: 0;
   bottom: calc(100% + 7px);
@@ -1270,7 +1290,6 @@ input[type="checkbox"] {
   border-radius: 6px;
   background: #29332e;
   color: white;
-  content: attr(data-tooltip);
   font-size: 10px;
   font-weight: 500;
   line-height: 1.4;
@@ -1280,8 +1299,7 @@ input[type="checkbox"] {
   transition: opacity 140ms ease, transform 140ms ease;
 }
 
-.increment-badge:hover::after,
-.increment-badge:focus-visible::after {
+.increment-badge-wrap:hover .increment-tooltip {
   opacity: 1;
   transform: translateY(0);
 }
@@ -1346,6 +1364,7 @@ input[type="checkbox"] {
 
 .request-drawer form > footer {
   display: flex;
+  flex: 0 0 auto;
   justify-content: center;
   gap: 9px;
   min-height: 70px;
