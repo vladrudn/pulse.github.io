@@ -22,6 +22,7 @@ export type SedoReport = {
   registeredAt: string;
   correspondent: string;
   subject: string;
+  materialBases?: string[];
 };
 
 export type AidRequest = {

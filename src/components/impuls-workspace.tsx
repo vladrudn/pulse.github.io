@@ -403,6 +403,7 @@ function ImpulsWorkspaceContent() {
         reportNumber: report.number,
         reportDate: report.date,
         orderDate,
+        bases: aidKind === "material" ? report.materialBases : undefined,
         status: "processed",
         createdAt: new Date().toISOString(),
         processedAt: new Date().toISOString(),
@@ -1002,6 +1003,11 @@ function SedoTable({
                 <td><span className="unit-code">{person?.unit}</span></td>
                 <td className="subject-cell">
                   {sedoSubjectFor(report.subject, aidKind)}
+                  {aidKind === "material" && report.materialBases?.length ? (
+                    <span className="subline">
+                      {report.materialBases.join("; ")}
+                    </span>
+                  ) : null}
                 </td>
                 <td>
                   {latestRequest

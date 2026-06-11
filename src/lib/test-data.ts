@@ -125,6 +125,21 @@ const reportDate = (offset: number) => {
   return date.toISOString().slice(0, 10);
 };
 
+const sedoBasisExamples = [
+  ["копія довідки про обставини поранення № 1245 від 11.05.2026, видана в/ч А0000"],
+  [
+    "копія свідоцтва про смерть матері від 17.02.2026",
+    "копія свідоцтва про народження",
+  ],
+  ["копія свідоцтва про народження дитини від 01.04.2026"],
+  ["копія виписки із медичної карти стаціонарного хворого від 25.04.2025"],
+  ["копія довідки про склад сім'ї від 20.05.2026"],
+  [
+    "копія посвідчення особи з інвалідністю внаслідок війни",
+    "копія довідки МСЕК від 14.03.2026",
+  ],
+];
+
 const generatedSedoReports: SedoReport[] = Array.from(
   { length: 24 },
   (_, index) => {
@@ -140,6 +155,7 @@ const generatedSedoReports: SedoReport[] = Array.from(
       }:00`,
       correspondent: person.fullName,
       subject: "Рапорт про виплату грошової допомоги для оздоровлення",
+      materialBases: sedoBasisExamples[index % sedoBasisExamples.length],
     };
   },
 );
@@ -157,6 +173,7 @@ export const sedoReports: SedoReport[] = [
     registeredAt: `${yanukovychReportDate}T10:15:00`,
     correspondent: formatFullName("Янукович Віктор Федорович"),
     subject: "Рапорт про виплату грошової допомоги для оздоровлення",
+    materialBases: sedoBasisExamples[0],
   },
   {
     id: "sedo-026",
@@ -166,6 +183,7 @@ export const sedoReports: SedoReport[] = [
     registeredAt: `${azarovReportDate}T10:30:00`,
     correspondent: formatFullName("Азаров Микола Янович"),
     subject: "Рапорт про виплату грошової допомоги для оздоровлення",
+    materialBases: sedoBasisExamples[1],
   },
 ];
 
