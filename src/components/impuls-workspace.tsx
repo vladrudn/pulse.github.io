@@ -189,6 +189,7 @@ function ImpulsWorkspaceContent() {
   const [financeNavOpen, setFinanceNavOpen] = useState(true);
   const [wellnessNavOpen, setWellnessNavOpen] = useState(true);
   const [materialNavOpen, setMaterialNavOpen] = useState(false);
+  const [recentPersonId, setRecentPersonId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -203,6 +204,12 @@ function ImpulsWorkspaceContent() {
     const timer = window.setTimeout(() => setToast(null), 3600);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (!recentPersonId) return;
+    const timer = window.setTimeout(() => setRecentPersonId(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [recentPersonId]);
 
   const requestsByPerson = useMemo(() => {
     const map = new Map<string, AidRequest[]>();
@@ -363,6 +370,7 @@ function ImpulsWorkspaceContent() {
       requests: [...current.requests, request],
     }));
     setDrawerPerson(null);
+    setRecentPersonId(payload.personId);
     showToast("Рапорт позначено як опрацьований.");
     return true;
   };
@@ -655,6 +663,7 @@ function ImpulsWorkspaceContent() {
                 unit={unit}
                 setUnit={setUnit}
                 onOpen={setDrawerPerson}
+                recentPersonId={recentPersonId}
               />
             )}
             {view === "sedo" && (
@@ -810,12 +819,14 @@ function PeopleTable({
   unit,
   setUnit,
   onOpen,
+  recentPersonId,
 }: {
   people: Person[];
   requestsByPerson: Map<string, AidRequest[]>;
   unit: string;
   setUnit: Dispatch<SetStateAction<string>>;
   onOpen: (person: Person) => void;
+  recentPersonId: string | null;
 }) {
   if (!rows.length) {
     return <EmptyState title="Нічого не знайдено" text="Змініть пошуковий запит або фільтр." />;
@@ -843,6 +854,7 @@ function PeopleTable({
             return (
               <tr
                 key={person.id}
+                className={person.id === recentPersonId ? "row-recent" : undefined}
                 tabIndex={0}
                 onDoubleClick={() => onOpen(person)}
                 onKeyDown={(event) => {
@@ -1320,41 +1332,41 @@ function RequestDrawer({
                 })}
               </div>
             )}
-            <div className={`form-field ${errors.reportNumber ? "field-error" : ""}`}>
-              <div className="report-number-label">
-                <label htmlFor="report-number">Номер рапорту <b>*</b></label>
-                <span className="increment-badge-wrap">
-                  <button
-                    type="button"
-                    className={`increment-badge ${incrementReport ? "is-active" : ""}`}
-                    aria-pressed={incrementReport}
-                    aria-label={`Автоматичний наступний номер: ${
-                      incrementReport ? "увімкнено" : "вимкнено"
-                    }`}
-                    onClick={toggleIncrement}
-                  >
-                    +1
-                  </button>
-                  <span className="increment-tooltip" role="tooltip">
-                    Зберігати останній введений номер рапорту та підставляти
-                    наступний номер +1.
+            <div className="report-details-grid">
+              <div className={`form-field ${errors.reportNumber ? "field-error" : ""}`}>
+                <div className="report-number-label">
+                  <label htmlFor="report-number">Номер рапорту <b>*</b></label>
+                  <span className="increment-badge-wrap">
+                    <button
+                      type="button"
+                      className={`increment-badge ${incrementReport ? "is-active" : ""}`}
+                      aria-pressed={incrementReport}
+                      aria-label={`Автоматичний наступний номер: ${
+                        incrementReport ? "увімкнено" : "вимкнено"
+                      }`}
+                      onClick={toggleIncrement}
+                    >
+                      +1
+                    </button>
+                    <span className="increment-tooltip" role="tooltip">
+                      Зберігати останній введений номер рапорту та підставляти
+                      наступний номер +1.
+                    </span>
                   </span>
-                </span>
+                </div>
+                <input
+                  id="report-number"
+                  autoFocus={aidKind !== "material"}
+                  value={reportNumber}
+                  onChange={(event) => setReportNumber(event.target.value)}
+                  onBlur={() =>
+                    setReportNumber((current) =>
+                      normalizeManualReportNumber(current)
+                    )}
+                  inputMode="numeric"
+                />
+                {errors.reportNumber && <small>{errors.reportNumber}</small>}
               </div>
-              <input
-                id="report-number"
-                autoFocus={aidKind !== "material"}
-                value={reportNumber}
-                onChange={(event) => setReportNumber(event.target.value)}
-                onBlur={() =>
-                  setReportNumber((current) =>
-                    normalizeManualReportNumber(current)
-                  )}
-                inputMode="numeric"
-              />
-              {errors.reportNumber && <small>{errors.reportNumber}</small>}
-            </div>
-            <div className="form-grid">
               <label className={errors.reportDate ? "field-error" : ""}>
                 <span>Дата рапорту <b>*</b></span>
                 <input

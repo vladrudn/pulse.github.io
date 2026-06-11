@@ -742,6 +742,25 @@ tbody tr.row-selected {
   box-shadow: inset 3px 0 0 var(--olive);
 }
 
+tbody tr.row-recent {
+  background: #edf4df;
+  box-shadow: inset 4px 0 0 var(--olive);
+  animation: recent-row-highlight 2.5s ease-out;
+}
+
+@keyframes recent-row-highlight {
+  0%,
+  55% {
+    background: #dfecc7;
+    box-shadow: inset 4px 0 0 var(--olive);
+  }
+
+  100% {
+    background: transparent;
+    box-shadow: inset 4px 0 0 transparent;
+  }
+}
+
 tbody tr.row-used {
   opacity: 0.58;
   background: #f7f8f7;
@@ -1322,7 +1341,7 @@ input[type="checkbox"] {
 
 .increment-tooltip {
   position: absolute;
-  right: 0;
+  left: 0;
   bottom: calc(100% + 7px);
   z-index: 2;
   width: 245px;
@@ -1357,6 +1376,12 @@ input[type="checkbox"] {
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.report-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
