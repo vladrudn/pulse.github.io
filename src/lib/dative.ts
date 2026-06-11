@@ -4,6 +4,11 @@ const capitalize = (value: string) =>
 const inflectHyphenated = (value: string, transform: (part: string) => string) =>
   value.split("-").map(transform).join("-");
 
+export const formatFullName = (fullName: string) => {
+  const [surname = "", ...otherNames] = fullName.split(/\s+/).filter(Boolean);
+  return [surname.toLocaleUpperCase("uk"), ...otherNames].join(" ");
+};
+
 const inflectWord = (value: string) => {
   const lower = value.toLocaleLowerCase("uk");
 
@@ -73,7 +78,7 @@ export const fullNameToDative = (fullName: string) => {
   const patronymic = parts.at(-1)?.toLocaleLowerCase("uk") || "";
   const isFemale = patronymic.endsWith("івна") || patronymic.endsWith("ївна");
 
-  return parts
+  const dativeParts = parts
     .map((part, index) => {
       if (index !== 0 || !isFemale) return inflectWord(part);
 
@@ -81,6 +86,7 @@ export const fullNameToDative = (fullName: string) => {
       return surname.endsWith("а") || surname.endsWith("я")
         ? inflectWord(part)
         : part;
-    })
-    .join(" ");
+    });
+
+  return formatFullName(dativeParts.join(" "));
 };

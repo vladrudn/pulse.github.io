@@ -406,6 +406,59 @@ svg {
   letter-spacing: 0.08em;
 }
 
+.disabled-import-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.disabled-import-wrap::after {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: 300px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #29332e;
+  color: white;
+  content: attr(data-tooltip);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 70ms ease, transform 70ms ease;
+}
+
+.disabled-import-wrap:hover::after,
+.disabled-import-wrap:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.disabled-import-button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #c9cfca;
+  border-radius: 5px;
+  background: #f7f8f7;
+  color: #7b847f;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: not-allowed;
+  opacity: 0.76;
+}
+
+.disabled-import-button svg {
+  width: 16px;
+  height: 16px;
+}
+
 .content {
   width: 100%;
   padding: 28px 30px;
@@ -1406,6 +1459,10 @@ input[type="checkbox"] {
 
   .test-label {
     display: none;
+  }
+
+  .disabled-import-wrap {
+    margin-left: auto;
   }
 
   .content {

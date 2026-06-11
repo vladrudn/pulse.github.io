@@ -555,6 +555,21 @@ function ImpulsWorkspaceContent() {
             <strong>{navItems.find((item) => item.id === view)?.label}</strong>
           </div>
           <span className="test-label">DEMO · {people.length} тестових осіб</span>
+          <span
+            className="disabled-import-wrap"
+            data-tooltip="Імпорт таблиці з даними рапортів із СЕДО недоступний у демоверсії."
+            tabIndex={0}
+          >
+            <button
+              type="button"
+              className="disabled-import-button"
+              disabled
+              aria-label="Імпорт таблиці з даними рапортів із СЕДО недоступний у демоверсії"
+            >
+              <Icon name="upload" />
+              Імпорт
+            </button>
+          </span>
         </header>
 
         <section className="content">

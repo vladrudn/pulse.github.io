@@ -1,4 +1,4 @@
-import { fullNameToDative } from "./dative";
+import { formatFullName, fullNameToDative } from "./dative";
 import type { Person, SedoReport } from "./types";
 
 const historicalNames = [
@@ -79,7 +79,7 @@ const generatedPeople: Person[] = Array.from({ length: 50 }, (_, index) => {
     taxId: `${3100000000 + index * 7919}`.slice(0, 10),
     unit: unitNames[index % unitNames.length],
     rank,
-    fullName: historicalNames[index],
+    fullName: formatFullName(historicalNames[index]),
     fullNameDative: fullNameToDative(historicalNames[index]),
     position: positions[index % positions.length],
     category,
@@ -100,8 +100,8 @@ export const people: Person[] = [
     taxId: "3100395950",
     unit: "1МБ",
     rank: "солдат",
-    fullName: "Янукович Віктор Федорович",
-    fullNameDative: "Януковичу Віктору Федоровичу",
+    fullName: formatFullName("Янукович Віктор Федорович"),
+    fullNameDative: formatFullName("Януковичу Віктору Федоровичу"),
     position: "стрілець",
     category: "Рядовий",
     flags: ["СЗЧ"],
@@ -111,8 +111,8 @@ export const people: Person[] = [
     taxId: "3100403869",
     unit: "2МБ",
     rank: "солдат",
-    fullName: "Азаров Микола Янович",
-    fullNameDative: "Азарову Миколі Яновичу",
+    fullName: formatFullName("Азаров Микола Янович"),
+    fullNameDative: formatFullName("Азарову Миколі Яновичу"),
     position: "стрілець",
     category: "Рядовий",
     flags: ["СЗЧ"],
@@ -155,7 +155,7 @@ export const sedoReports: SedoReport[] = [
     number: "1264/р",
     date: yanukovychReportDate,
     registeredAt: `${yanukovychReportDate}T10:15:00`,
-    correspondent: "Янукович Віктор Федорович",
+    correspondent: formatFullName("Янукович Віктор Федорович"),
     subject: "Рапорт про виплату грошової допомоги для оздоровлення",
   },
   {
@@ -164,7 +164,7 @@ export const sedoReports: SedoReport[] = [
     number: "1265/р",
     date: azarovReportDate,
     registeredAt: `${azarovReportDate}T10:30:00`,
-    correspondent: "Азаров Микола Янович",
+    correspondent: formatFullName("Азаров Микола Янович"),
     subject: "Рапорт про виплату грошової допомоги для оздоровлення",
   },
 ];
