@@ -25,9 +25,11 @@ import type {
   RequestStatus,
   WorkspaceState,
 } from "@/lib/types";
+import { FeatureCatalog } from "./feature-catalog";
 import { Icon, type IconName } from "./icons";
 
-type View = "people" | "sedo" | "processed";
+type FinanceView = "people" | "sedo" | "processed";
+type View = FinanceView | "ideas";
 type Toast = { type: "success" | "error"; text: string } | null;
 
 const STORAGE_KEY = "impuls-gdo-workspace-v1";
@@ -300,7 +302,7 @@ function ImpulsWorkspaceContent() {
   ).length;
 
   const navItems: Array<{
-    id: View;
+    id: FinanceView;
     label: string;
     icon: IconName;
     count?: number;
@@ -331,6 +333,14 @@ function ImpulsWorkspaceContent() {
       setMaterialNavOpen(true);
       setWellnessNavOpen(false);
     }
+  };
+
+  const openIdeaCatalog = () => {
+    setView("ideas");
+    setSearch("");
+    setUnit("all");
+    setSelectedSedo(new Set());
+    setMobileNav(false);
   };
 
   const showToast = (text: string, type: "success" | "error" = "success") =>
@@ -571,6 +581,17 @@ function ImpulsWorkspaceContent() {
               </button>
             </div>
           )}
+          <button
+            className={`nav-disclosure nav-root standalone-nav ${
+              view === "ideas" ? "active" : ""
+            }`}
+            type="button"
+            onClick={openIdeaCatalog}
+          >
+            <Icon name="file" />
+            <span>Каталог пропозицій</span>
+            <b>4</b>
+          </button>
         </nav>
         <div className="sidebar-footer">
           <button onClick={resetDemo}>
@@ -599,114 +620,164 @@ function ImpulsWorkspaceContent() {
             <Icon name="menu" />
           </button>
           <div className="breadcrumb">
-            Грошове забезпечення <Icon name="chevron" />
-            {aidKind === "material" ? "Матеріальна допомога" : "Для оздоровлення"}{" "}
-            <Icon name="chevron" />
-            <strong>{navItems.find((item) => item.id === view)?.label}</strong>
+            {view === "ideas" ? (
+              <>
+                GLPI <Icon name="chevron" />
+                Зворотний зв&apos;язок <Icon name="chevron" />
+                <strong>Каталог пропозицій</strong>
+              </>
+            ) : (
+              <>
+                Грошове забезпечення <Icon name="chevron" />
+                {aidKind === "material" ? "Матеріальна допомога" : "Для оздоровлення"}{" "}
+                <Icon name="chevron" />
+                <strong>{navItems.find((item) => item.id === view)?.label}</strong>
+              </>
+            )}
           </div>
           <span className="test-label">DEMO · {people.length} тестових осіб</span>
-          <span
-            className="disabled-import-wrap"
-            data-tooltip="Імпорт таблиці з даними рапортів із СЕДО недоступний у демоверсії."
-            tabIndex={0}
-          >
-            <button
-              type="button"
-              className="disabled-import-button"
-              disabled
-              aria-label="Імпорт таблиці з даними рапортів із СЕДО недоступний у демоверсії"
+          {view !== "ideas" && (
+            <span
+              className="disabled-import-wrap"
+              data-tooltip="Імпорт таблиці з даними рапортів із СЕДО недоступний у демоверсії."
+              tabIndex={0}
             >
-              <Icon name="upload" />
-              Імпорт
-            </button>
-          </span>
+              <button
+                type="button"
+                className="disabled-import-button"
+                disabled
+                aria-label="Імпорт таблиці з даними рапортів із СЕДО недоступний у демоверсії"
+              >
+                <Icon name="upload" />
+                Імпорт
+              </button>
+            </span>
+          )}
         </header>
 
         <section className="content">
-          <section className="registry-card">
-            <div className="toolbar">
-              <label className="search-field">
-                <Icon name="search" />
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Загальний пошук"
-                  aria-label="Загальний пошук"
-                />
-                {search && (
-                  <button
-                    onClick={() => setSearch("")}
-                    aria-label="Очистити пошук"
-                    tabIndex={-1}
-                  >
-                    <Icon name="x" />
-                  </button>
-                )}
-              </label>
-              <div className="toolbar-spacer" />
-              <button
-                className="secondary-button density-button"
-                onClick={() =>
-                  setDensity((current) =>
-                    current === "normal" ? "compact" : "normal"
+          {view === "ideas" ? (
+            <>
+              <section className="page-heading ideas-heading">
+                <div>
+                  <span className="eyebrow">GLPI · банк ідей</span>
+                  <h1>Каталог пропозицій ІКС «Імпульс»</h1>
+                  <p>
+                    Спільний реєстр покращень із голосуванням, сценаріями
+                    використання та статусами розгляду.
+                  </p>
+                </div>
+              </section>
+              <section className="registry-card ideas-registry">
+                <div className="toolbar">
+                  <label className="search-field">
+                    <Icon name="search" />
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Пошук за пропозиціями"
+                      aria-label="Пошук за пропозиціями"
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch("")}
+                        aria-label="Очистити пошук"
+                        tabIndex={-1}
+                      >
+                        <Icon name="x" />
+                      </button>
+                    )}
+                  </label>
+                </div>
+                <FeatureCatalog search={search} />
+              </section>
+            </>
+          ) : (
+            <section className="registry-card">
+              <div className="toolbar">
+                <label className="search-field">
+                  <Icon name="search" />
+                  <input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Загальний пошук"
+                    aria-label="Загальний пошук"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      aria-label="Очистити пошук"
+                      tabIndex={-1}
+                    >
+                      <Icon name="x" />
+                    </button>
                   )}
-                tabIndex={-1}
-              >
-                <Icon name="menu" />
-                {density === "normal" ? "Щільніше" : "Звичайно"}
-              </button>
-            </div>
+                </label>
+                <div className="toolbar-spacer" />
+                <button
+                  className="secondary-button density-button"
+                  onClick={() =>
+                    setDensity((current) =>
+                      current === "normal" ? "compact" : "normal"
+                    )}
+                  tabIndex={-1}
+                >
+                  <Icon name="menu" />
+                  {density === "normal" ? "Щільніше" : "Звичайно"}
+                </button>
+              </div>
 
-            {view === "people" && (
-              <PeopleTable
-                people={filteredPeople}
-                requestsByPerson={requestsByPerson}
-                unit={unit}
-                setUnit={setUnit}
-                onOpen={setDrawerPerson}
-                recentPersonId={recentPersonId}
-              />
-            )}
-            {view === "sedo" && (
-              <SedoTable
-                reports={filteredSedo}
-                aidKind={aidKind}
-                selected={selectedSedo}
-                setSelected={setSelectedSedo}
-                requestsByPerson={requestsByPerson}
-                unit={unit}
-                setUnit={setUnit}
-                usedIds={new Set(
-                  state.requests
-                    .filter((request) => request.aidKind === aidKind)
-                    .map((request) => request.sedoId)
-                    .filter(Boolean) as string[],
-                )}
-              />
-            )}
-            {view === "processed" && (
-              <RequestsTable
-                requests={visibleRequests}
-                aidKind={aidKind}
-                unit={unit}
-                setUnit={setUnit}
-              />
-            )}
+              {view === "people" && (
+                <PeopleTable
+                  people={filteredPeople}
+                  requestsByPerson={requestsByPerson}
+                  unit={unit}
+                  setUnit={setUnit}
+                  onOpen={setDrawerPerson}
+                  recentPersonId={recentPersonId}
+                />
+              )}
+              {view === "sedo" && (
+                <SedoTable
+                  reports={filteredSedo}
+                  aidKind={aidKind}
+                  selected={selectedSedo}
+                  setSelected={setSelectedSedo}
+                  requestsByPerson={requestsByPerson}
+                  unit={unit}
+                  setUnit={setUnit}
+                  usedIds={new Set(
+                    state.requests
+                      .filter((request) => request.aidKind === aidKind)
+                      .map((request) => request.sedoId)
+                      .filter(Boolean) as string[],
+                  )}
+                />
+              )}
+              {view === "processed" && (
+                <RequestsTable
+                  requests={visibleRequests}
+                  aidKind={aidKind}
+                  unit={unit}
+                  setUnit={setUnit}
+                />
+              )}
 
-            <div className="table-footer">
-              <span>
-                Показано:{" "}
-                <strong>
-                  {view === "people"
-                    ? filteredPeople.length
-                    : view === "sedo"
-                      ? filteredSedo.length
-                      : visibleRequests.length}
-                </strong>
-              </span>
-              <span>Тестові дані · сторінка 1 з 1</span>
-            </div>
-          </section>
+              <div className="table-footer">
+                <span>
+                  Показано:{" "}
+                  <strong>
+                    {view === "people"
+                      ? filteredPeople.length
+                      : view === "sedo"
+                        ? filteredSedo.length
+                        : visibleRequests.length}
+                  </strong>
+                </span>
+                <span>Тестові дані · сторінка 1 з 1</span>
+              </div>
+            </section>
+          )}
         </section>
 
         {view === "sedo" && selectedSedo.size > 0 && (
