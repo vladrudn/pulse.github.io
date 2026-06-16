@@ -622,7 +622,7 @@ function ImpulsWorkspaceContent() {
           <div className="breadcrumb">
             {view === "ideas" ? (
               <>
-                GLPI <Icon name="chevron" />
+                <Icon name="chevron" />
                 Зворотний зв&apos;язок <Icon name="chevron" />
                 <strong>Каталог пропозицій</strong>
               </>
@@ -660,7 +660,7 @@ function ImpulsWorkspaceContent() {
             <>
               <section className="page-heading ideas-heading">
                 <div>
-                  <span className="eyebrow">GLPI · банк ідей</span>
+                  <span className="eyebrow">Банк ідей</span>
                   <p>
                     Спільний реєстр покращень із голосуванням, сценаріями
                     використання та статусами розгляду.
