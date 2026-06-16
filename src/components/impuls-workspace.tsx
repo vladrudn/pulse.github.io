@@ -661,7 +661,6 @@ function ImpulsWorkspaceContent() {
               <section className="page-heading ideas-heading">
                 <div>
                   <span className="eyebrow">GLPI · банк ідей</span>
-                  <h1>Каталог пропозицій ІКС «Імпульс»</h1>
                   <p>
                     Спільний реєстр покращень із голосуванням, сценаріями
                     використання та статусами розгляду.
